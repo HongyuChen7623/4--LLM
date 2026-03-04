@@ -149,17 +149,7 @@ System Prompt 会作为对话的第一条消息发送给模型，影响整体风
 
 * 加入基础错误处理（Ollama 未启动、超时、HTTP 错误等）
 
-## 📝 简历描述参考
 
-可以在简历中这样写本项目（示例）：
-
-> **本地开源大模型聊天系统（Ollama + gpt-oss:20b）**
->
-> * 技术栈：Ollama、开源大模型 gpt-oss:20b、Streamlit、Python、HTTP API
->
-> * 功能：基于 Ollama 部署本地大模型，实现多轮对话、本地推理；支持模型切换、System Prompt 配置和推理参数调节
->
-> * 亮点：完整打通「模型下载 → 本地服务 → Python 调用 → Web 界面」链路，对比云端 API，理解推理延迟与资源占用；为后续 RAG、本地 Agent 项目打下基础
 
 ## ❗ 常见问题
 
