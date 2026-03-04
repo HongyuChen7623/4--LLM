@@ -1,16 +1,17 @@
 import streamlit as st
 import torch
+import os
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 
 @st.cache_resource
 def load_model(model_name: str):
     """
-    加载本地 Transformers 模型（第一次会从 Hugging Face 下载）。
+    加载 Transformers 模型。
 
-    默认使用 GPT-2（英文），主要目的是：
-    - 体验直接用 Transformers 调模型的流程
-    - 理解 tokenizer / model / generate 这些核心概念
+    - 如果传入的是模型名（如 "gpt2"），则从 Hugging Face Hub 下载预训练权重；
+    - 如果传入的是本地目录（如 "../项目5Finetune/my_finetuned_model"），
+      则从该目录加载你在项目5中微调后的模型。
     """
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(model_name)
@@ -50,16 +51,35 @@ st.set_page_config(
 )
 
 st.title("🤗 本地小模型 Demo（Transformers + GPT-2）")
-#st.caption("项目驱动学习路径 - 项目4：方案B 使用 Transformers 库（更专业）")
+st.caption("既可以体验预训练 GPT-2，也可以加载项目5微调后的 GPT-2。")
+
+# 检查项目5是否已生成微调模型目录
+finetuned_dir = os.path.join("..", "项目5Finetune", "my_finetuned_model")
+has_finetuned = os.path.isdir(finetuned_dir)
 
 with st.sidebar:
-    st.header("⚙️ 配置")
-    model_name = st.selectbox(
-        "选择模型（建议先从小模型体验）",
-        ["gpt2", "gpt2-medium", "distilgpt2"],
-        index=0,
-    )
+    st.header("⚙️ 模型选择")
 
+    # 根据是否存在微调模型，决定下拉选项
+    if has_finetuned:
+        model_choice = st.selectbox(
+            "选择模型来源",
+            ["预训练 GPT-2（gpt2）", "微调后 GPT-2（项目5Finetune/my_finetuned_model）"],
+            index=0,
+        )
+    else:
+        model_choice = "预训练 GPT-2（gpt2）"
+        st.info("未检测到 `项目5Finetune/my_finetuned_model`，当前仅可使用预训练 GPT-2。")
+
+    if model_choice.startswith("预训练"):
+        model_name = "gpt2"
+        st.success("当前使用：预训练 GPT-2")
+    else:
+        model_name = finetuned_dir
+        st.success("当前使用：项目5 微调后的 GPT-2")
+
+    st.markdown("---")
+    st.header("🎛️ 生成参数")
     temperature = st.slider("Temperature", 0.0, 2.0, 0.7, 0.1)
     # GPT-2 系列的总上下文长度通常为 1024 tokens，这里给出 400 的上限以平衡速度与长度
     max_new_tokens = st.slider(
@@ -73,15 +93,16 @@ with st.sidebar:
 
     st.markdown("---")
     st.info(
-        "第一次运行会从 Hugging Face 下载模型权重，可能比较慢；"
-        "后续离线也可以使用。"
+        "预训练模型会从 Hugging Face Hub 下载权重；\n"
+        "微调模型则从本地目录 `项目5Finetune/my_finetuned_model` 加载。"
     )
 
 tokenizer, model, device = load_model(model_name)
 
 st.subheader("📝 输入 Prompt")
 prompt = st.text_area(
-    "提示词（建议用英文效果更好，例如：'Write a short story about a dragon.'）",
+    "提示词（建议用英文；如果选择微调模型，可输入与训练数据类似的问句，"
+    "例如：'Q: How should I answer an interview question? A:'）",
     height=150,
 )
 
